@@ -1,14 +1,12 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Code, Zap, Lightbulb, GitCompare, Mouse, CheckCircle, ChevronRight } from 'lucide-react';
+import { ArrowRight, Code, Zap, Lightbulb, GitCompare, Mouse, CheckCircle, ChevronRight, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 
 const HeroSection = () => (
   <div className="relative overflow-hidden bg-editor-sidebar py-20 md:py-32">
-    {/* Background grid overlay */}
     <div className="absolute inset-0 bg-grid-white/5 bg-grid-pattern [mask-image:radial-gradient(black,transparent_70%)]" />
     
     <div className="container mx-auto px-4 relative z-10">
@@ -107,7 +105,6 @@ const DemoSection = () => (
       
       <div className="max-w-5xl mx-auto rounded-lg overflow-hidden shadow-glass-strong border border-white/10">
         <div className="aspect-w-16 aspect-h-9 bg-editor-sidebar relative">
-          {/* Mock editor UI */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <p className="text-muted-foreground mb-4">Interactive Demo</p>
