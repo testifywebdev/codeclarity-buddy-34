@@ -1,7 +1,9 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Terminal } from 'lucide-react';
+import { Terminal, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Header: React.FC = () => {
   return (
@@ -9,7 +11,7 @@ const Header: React.FC = () => {
       <div className="container flex items-center justify-between h-14 px-4 md:px-6 animate-fadeIn">
         <div className="flex items-center gap-2">
           <Terminal className="h-5 w-5 text-code-blue" />
-          <span className="font-semibold text-lg tracking-tight">CodeClarity</span>
+          <Link to="/" className="font-semibold text-lg tracking-tight">CodeClarity</Link>
         </div>
         
         <nav className="flex items-center gap-4">
@@ -33,6 +35,15 @@ const Header: React.FC = () => {
           >
             Documentation
           </a>
+          <Link to="/profile">
+            <Button variant="ghost" size="icon">
+              <User className="h-[1.2rem] w-[1.2rem]" />
+              <span className="sr-only">Profile</span>
+            </Button>
+          </Link>
+          <Link to="/login">
+            <Button variant="secondary" size="sm">Sign In</Button>
+          </Link>
         </nav>
       </div>
     </header>
