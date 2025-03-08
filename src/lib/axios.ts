@@ -11,6 +11,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // This is crucial for cookies to be sent/received cross-domain
 });
 
 // Request interceptor for adding authorization token
@@ -38,11 +39,12 @@ axiosInstance.interceptors.response.use(
       try {
         // Try to refresh tokens
         const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          return Promise.reject(error);
-        }
         
-        const response = await axios.post(`${API_URL}/generateNewTokens`, { refreshToken });
+        // Use withCredentials to ensure cookies are sent with the request
+        const response = await axios.post(`${API_URL}/generateNewTokens`, 
+          { refreshToken: refreshToken || undefined }, 
+          { withCredentials: true }
+        );
         
         if (response.data?.accessToken) {
           localStorage.setItem('accessToken', response.data.accessToken);

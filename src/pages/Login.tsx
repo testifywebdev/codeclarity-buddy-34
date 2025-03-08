@@ -16,50 +16,71 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import AuthLayout from '@/components/AuthLayout';
+import authService from '@/services/authService';
+import { toast } from 'sonner';
 
 const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!usernameOrEmail || !password) {
+      toast.error("Please enter both email/username and password");
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate authentication delay
-    setTimeout(() => {
-      setIsLoading(false);
-      // For demo purposes only - in a real app you'd use proper authentication
-      if (email && password) {
-        toast({
-          title: "Login successful",
-          description: "Redirecting you to dashboard...",
-        });
-        navigate('/verify-email');
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: "Please check your email and password.",
-        });
+    try {
+      const response = await authService.login({
+        usernameOrEmail,
+        password
+      });
+      
+      // Store tokens if they're returned in the response body
+      if (response.data?.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
       }
-    }, 1500);
+      
+      if (response.data?.refreshToken) {
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+      }
+      
+      toast.success("Login successful");
+      navigate('/app');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      // Handle 2FA requirement
+      if (error.response?.status === 302 && error.response?.data?.requiresTwoFactorAuth) {
+        navigate(`/two-factor-auth?usernameOrEmail=${encodeURIComponent(usernameOrEmail)}`);
+        return;
+      }
+      
+      // Handle verification required
+      if (error.response?.status === 403 && error.response?.data?.verificationRequired) {
+        navigate(`/verify-email?email=${encodeURIComponent(usernameOrEmail)}`);
+        return;
+      }
+      
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
-    toast({
-      title: "Google Login",
-      description: "This feature would connect to Google OAuth in a real app.",
-    });
+    window.location.href = authService.getGoogleOAuthUrl();
   };
 
   const handleGithubLogin = () => {
-    toast({
-      title: "GitHub Login",
-      description: "This feature would connect to GitHub OAuth in a real app.",
-    });
+    window.location.href = authService.getGithubOAuthUrl();
   };
 
   return (
@@ -71,17 +92,16 @@ const Login: React.FC = () => {
         <form onSubmit={handleLogin}>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <Input
                 id="email"
-                placeholder="name@example.com"
-                type="email"
+                placeholder="name@example.com or username"
+                type="text"
                 autoCapitalize="none"
-                autoComplete="email"
                 autoCorrect="off"
                 disabled={isLoading}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
                 required
               />
             </div>
