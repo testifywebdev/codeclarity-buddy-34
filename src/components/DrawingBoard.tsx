@@ -147,7 +147,7 @@ const DrawingBoard: React.FC<DrawingBoardProps> = ({
                 export: false,
                 saveToActiveFile: false,
                 clearCanvas: true,
-                saveAsImage: true, // Changed from saveAsScene to saveAsImage
+                saveAsImage: true,
                 toggleTheme: false,
                 changeViewBackgroundColor: false,
               },
