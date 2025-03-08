@@ -63,7 +63,7 @@ const DrawingBoard: React.FC<DrawingBoardProps> = ({
           ...appState,
           exportWithDarkMode: appState.theme === 'dark',
         },
-        files: {},
+        files: {}, // This was missing and causing the error
         mimeType: 'image/png',
       });
       
@@ -143,10 +143,10 @@ const DrawingBoard: React.FC<DrawingBoardProps> = ({
             theme="light"
             UIOptions={{
               canvasActions: {
-                loadScene: true,
-                export: true,
-                saveAsScene: true,
-                saveToActiveFile: true,
+                loadScene: false,
+                export: false,
+                saveAsScene: false,
+                saveToActiveFile: false,
                 clearCanvas: true,
               },
             }}
