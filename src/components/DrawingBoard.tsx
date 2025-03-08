@@ -145,9 +145,11 @@ const DrawingBoard: React.FC<DrawingBoardProps> = ({
               canvasActions: {
                 loadScene: false,
                 export: false,
-                saveAsScene: false,
                 saveToActiveFile: false,
                 clearCanvas: true,
+                saveAsImage: true, // Changed from saveAsScene to saveAsImage
+                toggleTheme: false,
+                changeViewBackgroundColor: false,
               },
             }}
             renderTopRightUI={null}
