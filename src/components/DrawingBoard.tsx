@@ -56,13 +56,14 @@ const DrawingBoard: React.FC<DrawingBoardProps> = ({
       const elements = excalidrawAPI.getSceneElements();
       const appState = excalidrawAPI.getAppState();
       
-      // Create a blob from the drawing
+      // Create a blob from the drawing - fixed to match ExportOpts type
       const blob = await exportToBlob({
         elements,
         appState: {
           ...appState,
           exportWithDarkMode: appState.theme === 'dark',
         },
+        files: {},
         mimeType: 'image/png',
       });
       

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
@@ -112,13 +111,17 @@ const Index = () => {
     }
   };
 
+  const handleOptionChange = (option: string) => {
+    setActiveOption(option as CodeActionType);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-editor">
       <Header />
       
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <Sidebar activeOption={activeOption} onOptionChange={setActiveOption} />
+        <Sidebar activeOption={activeOption} onOptionChange={handleOptionChange} />
         
         {/* Main content */}
         <main className="flex-1 flex flex-col overflow-hidden">

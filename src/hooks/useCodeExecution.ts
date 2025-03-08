@@ -2,6 +2,11 @@
 import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
+interface CustomWindow extends Window {
+  console: Console;
+  eval: (code: string) => any;
+}
+
 export const useCodeExecution = () => {
   const [output, setOutput] = useState<string>('');
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -33,7 +38,7 @@ export const useCodeExecution = () => {
       }
       
       // Get the iframe window
-      const iframeWindow = iframeRef.current.contentWindow;
+      const iframeWindow = iframeRef.current.contentWindow as unknown as CustomWindow;
       if (!iframeWindow) {
         throw new Error('Could not access iframe window');
       }

@@ -3,9 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import EditorJS from '@editorjs/editorjs';
 import Header from '@editorjs/header';
 import List from '@editorjs/list';
-import NestedList from '@editorjs/nested-list';
 import Checklist from '@editorjs/checklist';
-import NestedChecklist from '@calumk/editorjs-nested-checklist';
 import InlineCode from '@editorjs/inline-code';
 import Marker from '@editorjs/marker';
 import Paragraph from '@editorjs/paragraph';
@@ -14,6 +12,11 @@ import SimpleImage from '@editorjs/simple-image';
 import Embed from '@editorjs/embed';
 import Underline from '@editorjs/underline';
 import { Loader2 } from 'lucide-react';
+
+// Providing proper typing for third-party tools
+interface EditorJSTools {
+  [key: string]: any;
+}
 
 interface TextEditorProps {
   onChange?: (data: any) => void;
@@ -33,58 +36,54 @@ const TextEditor: React.FC<TextEditorProps> = ({
   useEffect(() => {
     // Initialize Editor.js when the component mounts
     if (holderRef.current && !editorRef.current) {
+      // Define tools with proper typing
+      const tools: EditorJSTools = {
+        header: {
+          class: Header,
+          inlineToolbar: true,
+          config: {
+            placeholder: 'Enter a header',
+            levels: [1, 2, 3, 4, 5, 6],
+            defaultLevel: 2
+          }
+        },
+        list: {
+          class: List,
+          inlineToolbar: true,
+        },
+        checklist: {
+          class: Checklist,
+          inlineToolbar: true,
+        },
+        inlineCode: {
+          class: InlineCode,
+        },
+        marker: {
+          class: Marker,
+        },
+        paragraph: {
+          class: Paragraph,
+          inlineToolbar: true,
+        },
+        quote: {
+          class: Quote,
+          inlineToolbar: true,
+        },
+        image: {
+          class: SimpleImage,
+        },
+        embed: {
+          class: Embed,
+        },
+        underline: {
+          class: Underline,
+        },
+      };
+      
+      // Create the editor with the tools
       const editor = new EditorJS({
         holder: holderRef.current,
-        tools: {
-          header: {
-            class: Header,
-            inlineToolbar: true,
-            config: {
-              placeholder: 'Enter a header',
-              levels: [1, 2, 3, 4, 5, 6],
-              defaultLevel: 2
-            }
-          },
-          list: {
-            class: List,
-            inlineToolbar: true,
-          },
-          nestedList: {
-            class: NestedList,
-            inlineToolbar: true,
-          },
-          checklist: {
-            class: Checklist,
-            inlineToolbar: true,
-          },
-          nestedChecklist: {
-            class: NestedChecklist,
-            inlineToolbar: true,
-          },
-          inlineCode: {
-            class: InlineCode,
-          },
-          marker: {
-            class: Marker,
-          },
-          paragraph: {
-            class: Paragraph,
-            inlineToolbar: true,
-          },
-          quote: {
-            class: Quote,
-            inlineToolbar: true,
-          },
-          image: {
-            class: SimpleImage,
-          },
-          embed: {
-            class: Embed,
-          },
-          underline: {
-            class: Underline,
-          },
-        },
+        tools,
         data: initialData,
         readOnly,
         onChange: async () => {
