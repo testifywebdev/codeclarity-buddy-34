@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AuthLayout from '@/components/AuthLayout';
+import authService from '@/services/authService';
 
 const VerifyReset: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
@@ -16,28 +17,30 @@ const VerifyReset: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [isValid, setIsValid] = useState<boolean>(false);
+  const [token, setToken] = useState<string>('');
   
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   
   // Get token and email from URL query parameters
-  const params = new URLSearchParams(location.search);
-  const token = params.get('token') || '';
-  const email = params.get('email') || '';
-  
-  // Log params for demonstration
-  console.log('Verifying token:', token);
-  console.log('For email:', email);
-  
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tokenParam = params.get('token') || '';
+    const emailParam = params.get('email') || '';
+    
+    setToken(tokenParam);
+    
+    // Log params for demonstration
+    console.log('Verifying token:', tokenParam);
+    console.log('For email:', emailParam);
+    
     // Simulate token verification delay
     const timer = setTimeout(() => {
       setIsVerifying(false);
       
       // In a real application, you would verify the token with your backend
-      // For demo purposes, we'll consider all tokens valid
-      if (token) {
+      if (tokenParam) {
         setIsValid(true);
       } else {
         setIsValid(false);
@@ -47,14 +50,10 @@ const VerifyReset: React.FC = () => {
           description: "This password reset link is invalid or has expired.",
         });
       }
-    }, 2000);
+    }, 1500);
     
     return () => clearTimeout(timer);
-  }, [token, toast]);
-  
-  useEffect(() => {
-    // Add password validation logic here if needed
-  }, [password, confirmPassword]);
+  }, [location, toast]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,9 +78,8 @@ const VerifyReset: React.FC = () => {
     
     setIsLoading(true);
     
-    // Simulate request delay
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await authService.verifyUser(token);
       
       toast({
         title: "Password reset successful",
@@ -89,7 +87,16 @@ const VerifyReset: React.FC = () => {
       });
       
       navigate('/login');
-    }, 1500);
+    } catch (error) {
+      console.error('Password reset failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Password reset failed",
+        description: "Please try again or request a new reset link.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   if (isVerifying) {
@@ -133,7 +140,7 @@ const VerifyReset: React.FC = () => {
   return (
     <AuthLayout
       title="Reset your password"
-      subtitle={`Create a new password for ${email}`}
+      subtitle="Create a new password for your account"
     >
       <div className="grid gap-6">
         <form onSubmit={handleSubmit}>

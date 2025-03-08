@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AuthLayout from '@/components/AuthLayout';
+import authService from '@/services/authService';
 
 const ForgotPassword: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -28,16 +29,26 @@ const ForgotPassword: React.FC = () => {
     
     setIsLoading(true);
     
-    // Simulate request delay
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Create a reset token (in a real app this would be a secure token)
-      const resetToken = `token_${Math.random().toString(36).substr(2, 9)}`;
+    try {
+      await authService.forgotPassword({ identifier });
       
       // Navigate to the reset-email-sent page with the email as a parameter
-      navigate(`/reset-email-sent?email=${encodeURIComponent(identifier)}&token=${resetToken}`);
-    }, 1500);
+      navigate(`/reset-email-sent?email=${encodeURIComponent(identifier)}`);
+      
+      toast({
+        title: "Reset email sent",
+        description: "Please check your inbox for the password reset link.",
+      });
+    } catch (error) {
+      console.error('Password reset request failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to send reset email",
+        description: "Please check your information and try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

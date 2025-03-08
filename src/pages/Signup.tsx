@@ -3,64 +3,71 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Github, Mail, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import AuthLayout from '@/components/AuthLayout';
+import authService from '@/services/authService';
 
 const Signup: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [name, setName] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password || !username) {
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate signup delay
-    setTimeout(() => {
+    try {
+      await authService.register({
+        email,
+        password,
+        username,
+        name: name || undefined,
+      });
+      
+      toast({
+        title: "Account created",
+        description: "Please verify your email to continue.",
+      });
+      
+      navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      
+      const errorMessage = error.response?.data?.message || 'Signup failed. Please try again.';
+      
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: errorMessage,
+      });
+    } finally {
       setIsLoading(false);
-      // For demo purposes only - in a real app you'd create a user account
-      if (email && password && name) {
-        toast({
-          title: "Account created",
-          description: "Please verify your email to continue.",
-        });
-        navigate('/verify-email');
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Signup failed",
-          description: "Please fill in all required fields.",
-        });
-      }
-    }, 1500);
+    }
   };
 
   const handleGoogleSignup = () => {
-    toast({
-      title: "Google Signup",
-      description: "This feature would connect to Google OAuth in a real app.",
-    });
+    window.location.href = authService.getGoogleOAuthUrl();
   };
 
   const handleGithubSignup = () => {
-    toast({
-      title: "GitHub Signup",
-      description: "This feature would connect to GitHub OAuth in a real app.",
-    });
+    window.location.href = authService.getGithubOAuthUrl();
   };
 
   return (
@@ -83,9 +90,25 @@ const Signup: React.FC = () => {
                 disabled={isLoading}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                placeholder="johndoe"
+                type="text"
+                autoCapitalize="none"
+                autoComplete="username"
+                autoCorrect="off"
+                disabled={isLoading}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
+            
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -101,6 +124,7 @@ const Signup: React.FC = () => {
                 required
               />
             </div>
+            
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -115,6 +139,7 @@ const Signup: React.FC = () => {
                 required
               />
             </div>
+            
             <Button disabled={isLoading} type="submit" className="mt-2">
               {isLoading ? (
                 <>

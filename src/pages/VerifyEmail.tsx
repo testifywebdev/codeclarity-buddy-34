@@ -1,18 +1,36 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, CheckCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import AuthLayout from '@/components/AuthLayout';
+import authService from '@/services/authService';
 
 const VerifyEmail: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [email] = useState<string>('user@example.com'); // In a real app, get this from context/state
+  const [email, setEmail] = useState<string>('');
+  const [token, setToken] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(60);
   const [canResend, setCanResend] = useState<boolean>(false);
+  
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  
+  useEffect(() => {
+    // Get email and token from URL params
+    const params = new URLSearchParams(location.search);
+    const emailParam = params.get('email');
+    const tokenParam = params.get('token');
+    
+    if (emailParam) setEmail(emailParam);
+    if (tokenParam) setToken(tokenParam);
+    
+    // Log params
+    console.log('Email from params:', emailParam);
+    console.log('Token from params:', tokenParam);
+  }, [location]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -24,28 +42,62 @@ const VerifyEmail: React.FC = () => {
     return () => clearTimeout(timer);
   }, [countdown, canResend]);
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
+    if (!token) {
+      toast({
+        variant: "destructive",
+        title: "No verification token",
+        description: "No token was provided in the URL. Please check your email for the correct link.",
+      });
+      return;
+    }
+    
     setIsVerifying(true);
     
-    // Simulate verification
-    setTimeout(() => {
-      setIsVerifying(false);
+    try {
+      await authService.verifyUser(token);
+      
       toast({
         title: "Email verified!",
         description: "Your email has been successfully verified.",
       });
+      
       navigate('/profile');
-    }, 2000);
+    } catch (error) {
+      console.error('Email verification failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Verification failed",
+        description: "The verification token is invalid or has expired.",
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
-  const handleResendEmail = () => {
+  const handleResendEmail = async () => {
     setCanResend(false);
     setCountdown(60);
     
-    toast({
-      title: "Verification email sent",
-      description: "Please check your inbox for a new verification link.",
-    });
+    try {
+      await authService.resendVerificationToken();
+      
+      toast({
+        title: "Verification email sent",
+        description: "Please check your inbox for a new verification link.",
+      });
+    } catch (error) {
+      console.error('Failed to resend verification email:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to resend email",
+        description: "Please try again later.",
+      });
+      
+      // Reset countdown if failed
+      setCanResend(true);
+      setCountdown(0);
+    }
   };
 
   return (
@@ -61,7 +113,7 @@ const VerifyEmail: React.FC = () => {
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Check your email</h2>
           <p className="text-sm text-muted-foreground">
-            We've sent a verification link to <span className="font-medium">{email}</span>
+            We've sent a verification link to <span className="font-medium">{email || 'your email'}</span>
           </p>
         </div>
         
@@ -79,7 +131,7 @@ const VerifyEmail: React.FC = () => {
           ) : (
             <>
               <CheckCircle className="mr-2 h-4 w-4" />
-              Simulate Email Verification
+              {token ? 'Verify Email' : 'Simulate Email Verification'}
             </>
           )}
         </Button>
